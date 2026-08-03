@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TaskBoard</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; }
+  .Util_hidden__9q2z { display: none; }
+  .Alert_danger__f81m { color: #b00020; border: 1px solid #b00020; padding: 8px; margin-top: 12px; border-radius: 6px; }
+  .TaskList_row__p3c7 { display: flex; justify-content: space-between; padding: 6px 0; }
+  .TaskList_done__k1w4 .TaskList_label__e6r8 { text-decoration: line-through; color: #777; }
+  .Pill_button__a4n1 { padding: 4px 12px; border-radius: 999px; }
+  .Icon_button__z7h3 { border: none; background: #eee; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+  label { display: block; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header class="Header_root__m2s5"><h1>TaskBoard</h1></header>
+
+<main class="Shell_root__t8b2">
+  <section class="Login_panel__c3v6">
+    <form class="Login_form__h5d9">
+      <label for="fld_9a2b">Username</label>
+      <input id="fld_9a2b" class="Login_input__k3x9" data-testid="username-input">
+      <label for="fld_4c1d">Password</label>
+      <input id="fld_4c1d" class="Login_input__k3x9" type="password" data-testid="password-input">
+      <button class="Login_submit__w6f4" type="submit" data-testid="login-submit">Login</button>
+    </form>
+    <div class="Alert_danger__f81m Util_hidden__9q2z" role="alert" data-testid="login-error">Invalid username or password</div>
+  </section>
+
+  <section class="Board_panel__r9j1 Util_hidden__9q2z">
+    <div class="Board_header__s2k8">
+      <h2 class="Board_title__u4m3" data-testid="dashboard-title">My Tasks</h2>
+      <span class="Board_badge__x1p6" data-testid="task-counter"></span>
+    </div>
+    <form class="Composer_form__b7t2">
+      <input class="Composer_input__n5q4" aria-label="New task" data-testid="task-input">
+      <button class="Icon_button__z7h3 Composer_submit__g3y8" type="submit" aria-label="Add task" data-testid="task-add">+</button>
+    </form>
+    <nav class="Filters_bar__d8e1">
+      <button type="button" class="Pill_button__a4n1" data-filter="all" data-testid="filter-all">All</button>
+      <button type="button" class="Pill_button__a4n1" data-filter="active" data-testid="filter-active">Active</button>
+      <button type="button" class="Pill_button__a4n1" data-filter="completed" data-testid="filter-completed">Completed</button>
+    </nav>
+    <ul class="TaskList_root__v2c9" data-testid="task-list"></ul>
+  </section>
+</main>
+
+<script>
+  const tasks = [
+    { name: 'Write report', done: false },
+    { name: 'Review PR', done: false },
+    { name: 'Ship release', done: true },
+  ];
+  let filter = 'all';
+  const $ = (s) => document.querySelector(s);
+
+  $('.Login_form__h5d9').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if ($('#fld_9a2b').value === 'demo' && $('#fld_4c1d').value === 'demo123') {
+      $('.Login_panel__c3v6').classList.add('Util_hidden__9q2z');
+      $('.Board_panel__r9j1').classList.remove('Util_hidden__9q2z');
+      render();
+    } else {
+      $('.Alert_danger__f81m').classList.remove('Util_hidden__9q2z');
+    }
+  });
+
+  $('.Composer_form__b7t2').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('.Composer_input__n5q4').value.trim();
+    if (v) {
+      tasks.push({ name: v, done: false });
+      $('.Composer_input__n5q4').value = '';
+      render();
+    }
+  });
+
+  document.querySelectorAll('.Pill_button__a4n1').forEach((b) =>
+    b.addEventListener('click', () => {
+      filter = b.dataset.filter;
+      render();
+    }),
+  );
+
+  function render() {
+    const list = $('.TaskList_root__v2c9');
+    list.innerHTML = '';
+    tasks
+      .filter((t) => (filter === 'all' ? true : filter === 'active' ? !t.done : t.done))
+      .forEach((t) => {
+        const li = document.createElement('li');
+        li.className = 'TaskList_row__p3c7' + (t.done ? ' TaskList_done__k1w4' : '');
+        li.dataset.testid = 'task-item';
+        const span = document.createElement('span');
+        span.className = 'TaskList_label__e6r8';
+        span.textContent = t.name;
+        li.appendChild(span);
+        if (!t.done) {
+          const btn = document.createElement('button');
+          btn.className = 'Icon_button__z7h3';
+          btn.setAttribute('aria-label', 'Complete');
+          btn.textContent = '✓';
+          btn.dataset.testid = 'task-complete';
+          btn.addEventListener('click', () => {
+            t.done = true;
+            render();
+          });
+          li.appendChild(btn);
+        }
+        list.appendChild(li);
+      });
+    $('.Board_badge__x1p6').textContent = tasks.filter((t) => !t.done).length + ' active';
+  }
+</script>
+</body>
+</html>

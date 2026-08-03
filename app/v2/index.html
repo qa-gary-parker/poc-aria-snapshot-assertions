@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TaskBoard</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; }
+  .is-hidden { display: none; }
+  .notification--danger { color: #b00020; border: 1px solid #b00020; padding: 8px; margin-top: 12px; border-radius: 6px; }
+  .task-row { display: flex; justify-content: space-between; padding: 6px 0; }
+  .task-row--done .task-row__label { text-decoration: line-through; color: #777; }
+  .chip { padding: 4px 12px; border-radius: 999px; }
+  .icon-btn { border: none; background: #eee; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+  label { display: block; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header class="app-header"><h1>TaskBoard</h1></header>
+
+<main class="app-shell">
+  <section class="auth-panel">
+    <form class="auth-form">
+      <label for="field-user">Username</label>
+      <input id="field-user" class="auth-form__input" data-testid="username-input">
+      <label for="field-pass">Password</label>
+      <input id="field-pass" class="auth-form__input" type="password" data-testid="password-input">
+      <button class="submit-action" type="submit" data-testid="login-submit">Login</button>
+    </form>
+    <div class="notification notification--danger is-hidden" role="alert" data-testid="login-error">Invalid username or password</div>
+  </section>
+
+  <section class="dashboard-panel is-hidden">
+    <div class="dashboard-panel__header">
+      <h2 class="dashboard-panel__title" data-testid="dashboard-title">My Tasks</h2>
+      <span class="badge-count" data-testid="task-counter"></span>
+    </div>
+    <form class="task-composer">
+      <input class="task-composer__input" aria-label="New task" data-testid="task-input">
+      <button class="icon-btn task-composer__submit" type="submit" aria-label="Add task" data-testid="task-add">+</button>
+    </form>
+    <nav class="filter-bar">
+      <button type="button" class="chip" data-filter="all" data-testid="filter-all">All</button>
+      <button type="button" class="chip" data-filter="active" data-testid="filter-active">Active</button>
+      <button type="button" class="chip" data-filter="completed" data-testid="filter-completed">Completed</button>
+    </nav>
+    <ul class="tasks" data-testid="task-list"></ul>
+  </section>
+</main>
+
+<script>
+  const tasks = [
+    { name: 'Write report', done: false },
+    { name: 'Review PR', done: false },
+    { name: 'Ship release', done: true },
+  ];
+  let filter = 'all';
+  const $ = (s) => document.querySelector(s);
+
+  $('.auth-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if ($('#field-user').value === 'demo' && $('#field-pass').value === 'demo123') {
+      $('.auth-panel').classList.add('is-hidden');
+      $('.dashboard-panel').classList.remove('is-hidden');
+      render();
+    } else {
+      $('.notification--danger').classList.remove('is-hidden');
+    }
+  });
+
+  $('.task-composer').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('.task-composer__input').value.trim();
+    if (v) {
+      tasks.push({ name: v, done: false });
+      $('.task-composer__input').value = '';
+      render();
+    }
+  });
+
+  document.querySelectorAll('.chip').forEach((b) =>
+    b.addEventListener('click', () => {
+      filter = b.dataset.filter;
+      render();
+    }),
+  );
+
+  function render() {
+    const list = $('.tasks');
+    list.innerHTML = '';
+    tasks
+      .filter((t) => (filter === 'all' ? true : filter === 'active' ? !t.done : t.done))
+      .forEach((t) => {
+        const li = document.createElement('li');
+        li.className = 'task-row' + (t.done ? ' task-row--done' : '');
+        li.dataset.testid = 'task-item';
+        const span = document.createElement('span');
+        span.className = 'task-row__label';
+        span.textContent = t.name;
+        li.appendChild(span);
+        if (!t.done) {
+          const btn = document.createElement('button');
+          btn.className = 'icon-btn';
+          btn.setAttribute('aria-label', 'Complete');
+          btn.textContent = '✓';
+          btn.dataset.testid = 'task-complete';
+          btn.addEventListener('click', () => {
+            t.done = true;
+            render();
+          });
+          li.appendChild(btn);
+        }
+        list.appendChild(li);
+      });
+    $('.badge-count').textContent = tasks.filter((t) => !t.done).length + ' active';
+  }
+</script>
+</body>
+</html>
