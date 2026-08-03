@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TaskBoard</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; }
+  .hidden { display: none; }
+  .alert-error { color: #b00020; border: 1px solid #b00020; padding: 8px; margin-top: 12px; }
+  .task-item { display: flex; justify-content: space-between; padding: 6px 0; }
+  .completed .task-name { text-decoration: line-through; color: #777; }
+  .btn { padding: 4px 12px; }
+  label { display: block; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>TaskBoard</h1>
+
+<div id="login-section">
+  <form id="login-form">
+    <label for="username">Username</label>
+    <input id="username" data-testid="username-input">
+    <label for="password">Password</label>
+    <input id="password" type="password" data-testid="password-input">
+    <button id="login-btn" class="btn btn-primary" type="submit" data-testid="login-submit">Login</button>
+  </form>
+  <div class="alert alert-error hidden" data-testid="login-error">Invalid username or password</div>
+</div>
+
+<div id="dashboard" class="dashboard hidden">
+  <h2 id="dashboard-title" data-testid="dashboard-title">My Tasks</h2>
+  <span id="count-badge" data-testid="active-count"></span>
+  <form id="add-form">
+    <input id="new-task" aria-label="New task" data-testid="task-input">
+    <button id="add-btn" class="btn" type="submit" data-testid="task-add">Add</button>
+  </form>
+  <div id="filters">
+    <button type="button" class="filter-btn" data-filter="all" data-testid="filter-all">All</button>
+    <button type="button" class="filter-btn" data-filter="active" data-testid="filter-active">Active</button>
+    <button type="button" class="filter-btn" data-filter="completed" data-testid="filter-completed">Completed</button>
+  </div>
+  <ul id="task-list" data-testid="task-list"></ul>
+</div>
+
+<script>
+  const tasks = [
+    { name: 'Write report', done: false },
+    { name: 'Review PR', done: false },
+    { name: 'Ship release', done: true },
+  ];
+  let filter = 'all';
+  const $ = (s) => document.querySelector(s);
+
+  $('#login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if ($('#username').value === 'demo' && $('#password').value === 'demo123') {
+      $('#login-section').classList.add('hidden');
+      $('#dashboard').classList.remove('hidden');
+      render();
+    } else {
+      $('.alert-error').classList.remove('hidden');
+    }
+  });
+
+  $('#add-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#new-task').value.trim();
+    if (v) {
+      tasks.push({ name: v, done: false });
+      $('#new-task').value = '';
+      render();
+    }
+  });
+
+  document.querySelectorAll('.filter-btn').forEach((b) =>
+    b.addEventListener('click', () => {
+      filter = b.dataset.filter;
+      render();
+    }),
+  );
+
+  function render() {
+    const list = $('#task-list');
+    list.innerHTML = '';
+    tasks
+      .filter((t) => (filter === 'all' ? true : filter === 'active' ? !t.done : t.done))
+      .forEach((t) => {
+        const li = document.createElement('li');
+        li.className = 'task-item' + (t.done ? ' completed' : '');
+        li.dataset.testid = 'task-item';
+        const span = document.createElement('span');
+        span.className = 'task-name';
+        span.textContent = t.name;
+        li.appendChild(span);
+        if (!t.done) {
+          const btn = document.createElement('button');
+          btn.className = 'complete-btn';
+          btn.textContent = 'Done';
+          btn.dataset.testid = 'task-complete';
+          btn.addEventListener('click', () => {
+            t.done = true;
+            render();
+          });
+          li.appendChild(btn);
+        }
+        list.appendChild(li);
+      });
+    $('#count-badge').textContent = tasks.filter((t) => !t.done).length + ' active';
+  }
+</script>
+</body>
+</html>

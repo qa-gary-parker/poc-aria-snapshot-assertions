@@ -1,10 +1,11 @@
 import { defineConfig } from "@playwright/test";
 
-// APP_VERSION selects the app build to serve (v1 | v2 | v3 | v1-regressed).
+// APP_VERSION selects the app build to serve (v1 | v2 | v3 | v1-regressed | r1..r5).
+// SUITE_DIR selects the suite copy (tests | tests-updated).
 const version = process.env.APP_VERSION || "v1";
 
 export default defineConfig({
-	testDir: "./tests",
+	testDir: process.env.SUITE_DIR || "./tests",
 	fullyParallel: true,
 	reporter: [["list"]],
 	use: {
