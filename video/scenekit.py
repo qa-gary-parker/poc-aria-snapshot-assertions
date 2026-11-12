@@ -18,11 +18,13 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Copy this file next to the scene file. Each scene subclasses Narrated and wraps
 the animations for beat i in `with self.beat(i):`. The beat plays its narration
 clip and waits until the clip ends, so keep each beat's animations shorter than
-its clip. Draw arrows with arrow() and animate them with grow_arrow(): manim's
+its clip. Or subclass Timed (after ~/bin/explainer/align.py) to start each
+animation on a spoken word. Draw arrows with arrow() and animate them with grow_arrow(): manim's
 Arrow and GrowArrow scale the tip and the line width with the arrow's length.
 """
 
 import json
+import re
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -32,6 +34,7 @@ from manim import (
     AnimationGroup,
     Arrow,
     FadeOut,
+    MovingCameraScene,
     RoundedRectangle,
     Scene,
     Text,
@@ -116,4 +119,56 @@ class Narrated(Scene):
     def clear_all(self, run_time=0.6):
         if self.mobjects:
             self.play(*[FadeOut(m) for m in self.mobjects], run_time=run_time)
+
+
+def span(mob, text, sub):
+    """Glyphs of `sub` inside a Text built from `text` (Text drops whitespace glyphs)."""
+    i = text.index(sub)
+    a = len(re.sub(r"\s", "", text[:i]))
+    return mob[a:a + len(re.sub(r"\s", "", sub))]
+
+
+class Timed(MovingCameraScene):
+    """Plays the scene's whole take (align.py) and starts animations on spoken words.
+
+    `self.at("phrase")` waits until just before the phrase is spoken; phrases are
+    matched in order against Whisper's words, lower case without punctuation.
+    The camera drifts in slowly so holds never freeze; `camera_to()` resets it.
+    """
+
+    DRIFT = 0.003
+    LEAD = 0.12
+
+    def setup(self):
+        name = type(self).__name__
+        self.words = json.loads((AUDIO / f"{name}.words.json").read_text())
+        self.cursor = 0
+        self.add_sound(str(AUDIO / f"{name}.take.wav"))
+        self.t0 = self.renderer.time
+        self.camera.frame.add_updater(lambda m, dt: m.scale(1 - self.DRIFT * dt))
+        self.add(self.camera.frame)
+
+    def now(self):
+        return self.renderer.time - self.t0
+
+    def cue(self, phrase):
+        target = [re.sub(r"[^a-z0-9']", "", w.lower()) for w in phrase.split()]
+        for i in range(self.cursor, len(self.words) - len(target) + 1):
+            if [w["w"] for w in self.words[i:i + len(target)]] == target:
+                self.cursor = i + len(target)
+                return self.words[i]["start"]
+        raise ValueError(f"{type(self).__name__}: cue not found after word {self.cursor}: {phrase}")
+
+    def at(self, phrase, offset=0.0):
+        gap = self.cue(phrase) - self.LEAD + offset - self.now()
+        if gap > 1 / config.frame_rate:
+            self.wait(gap)
+
+    def end(self, tail=0.6, minimum=0.0):
+        gap = max(self.words[-1]["end"] + tail, minimum) - self.now()
+        if gap > 0:
+            self.wait(gap)
+
+    def camera_to(self, width=None, center=ORIGIN):
+        return self.camera.frame.animate.set(width=width or config.frame_width).move_to(center)
 
