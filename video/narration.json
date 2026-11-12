@@ -1,0 +1,43 @@
+{
+  "S1Result": [
+    "Five accessibility regressions. One app. Four test suites.",
+    "The test ID suite caught none of them. Every test stayed green.",
+    "The ARIA snapshot suite caught all five.",
+    "The suite that survives change best also notices least. Here is why."
+  ],
+  "S2Setup": [
+    "The testbed is a small task board app. It has seven user scenarios.",
+    "Each scenario is written four ways. CSS selectors. Test IDs. Role locators. And ARIA snapshots.",
+    "The snapshot suite acts through role locators. But every assertion is a short template of the accessibility tree."
+  ],
+  "S3Regressions": [
+    "Then I seeded five regressions into the app. One per build.",
+    "A heading drops from level two to level four. A list becomes plain divs. A button becomes a clickable div. An alert loses its role. A label loses its input.",
+    "On screen every build looks the same as the original. Only the accessibility tree changes."
+  ],
+  "S4Blind": [
+    "The test ID suite finds elements by a private attribute. The demoted heading keeps that attribute.",
+    "So the locator still matches. The text still says My Tasks. The test passes.",
+    "With all five regressions in one build the test ID suite still ran seven of seven green. It never looks at what users get."
+  ],
+  "S5Caught": [
+    "The snapshot template records more than a name. It records the role and the heading level.",
+    "Expected level two. Received level four. The test fails with a diff you can read.",
+    "A role locator for the heading named My Tasks matches a level four heading too. So the role locator suite missed this one.",
+    "Final count. CSS selectors caught one. Test IDs caught none. Role locators caught four. ARIA snapshots caught all five."
+  ],
+  "S6Cost": [
+    "Breadth has a cost. After a redesign the snapshot suite passed three of seven. Test IDs passed six.",
+    "A snapshot asserts the whole subtree it covers. So any change inside that subtree fails the test.",
+    "The update is one command. Playwright writes a patch file for you to review. It does not edit your test file.",
+    "Apply the patch and fix two locators. The suite then passed the redesign and a later migration with no other changes."
+  ],
+  "S7Dial": [
+    "Survival and vigilance sit on one dial. Test IDs sit at one end. Whole page snapshots sit at the other.",
+    "The templates here were scoped and partial. Wider templates would break more often and catch more. Where you set that dial is the real decision.",
+    "One caveat. The app is small and I wrote the regressions myself. Run the suites against your own app before you trust the numbers."
+  ],
+  "S8EndCard": [
+    "Every suite and every number is in the public repo. The links are in the description."
+  ]
+}
