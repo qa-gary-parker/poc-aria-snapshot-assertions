@@ -123,7 +123,7 @@ class S1Result(Narrated):
             row = rows[1]
             anims, labels = zip(*[mark(c, x) for c, x in zip(row[1], CAUGHT["test IDs"])])
             totals[1] = code("0/5", 26, BAD).next_to(row[1], RIGHT, buff=0.4)
-            green = code("7/7 passed", 18, DIM).next_to(totals[1], DOWN, buff=0.08)
+            green = code("7/7 passed", 18, DIM).next_to(totals[1], DOWN, buff=0.08, aligned_edge=LEFT)
             self.play(LaggedStart(*anims, lag_ratio=0.12), FadeIn(totals[1]), FadeIn(green), run_time=2.0)
         with self.beat(2):
             row = rows[3]
