@@ -1,5 +1,6 @@
 {
   "S1Result": [
+    "Your suite can be fully green while a screen reader user cannot use the page.",
     "Five accessibility regressions. One app. Four test suites.",
     "The test ID suite caught none of them. Every test stayed green.",
     "The ARIA snapshot suite caught all five.",
