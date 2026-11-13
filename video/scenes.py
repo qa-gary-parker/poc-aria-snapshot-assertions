@@ -122,6 +122,17 @@ class S1Result(Timed):
     def construct(self):
         title = code("5 seeded accessibility regressions  ×  4 suites", 22, DIM).to_edge(UP, buff=0.7)
         self.add(title)
+        hook = VGroup(
+            txt("A fully green suite.", 40),
+            code("a page a screen reader user cannot use", 26, ACCENT),
+        ).arrange(DOWN, buff=0.45).move_to([0, 0.3, 0])
+        self.play(FadeIn(hook[0], shift=UP * 0.2), run_time=0.5)
+        self.at("while a screen reader")
+        self.play(FadeIn(hook[1], shift=UP * 0.15), run_time=0.4)
+        first = self.cue("five accessibility regressions")
+        self.cursor = 0
+        self.wait(first - 0.6 - self.now())
+        self.play(FadeOut(hook), run_time=0.35)
         header, rows = matrix()
         self.at("five accessibility regressions")
         self.play(LaggedStart(*[FadeIn(h, shift=DOWN * 0.15) for h in header], lag_ratio=0.15), run_time=0.9)
